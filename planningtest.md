@@ -1,8 +1,8 @@
-# Banking Technology Planning Guideline
+# Planning Guideline
 
 ## Purpose
 
-The Banking Department sticks to a quarterly planning cadence in delivering change on the Banking Tech Products. This repository tracks the delivery and evidence collection process for.
+The ... Department sticks to a quarterly planning cadence in delivering change on the Banking Tech Products. This repository tracks the delivery and evidence collection process for.
 
 Key changes to become effective with FY 256/27:
 
@@ -69,7 +69,6 @@ Note that conditions are pass/fail. Acceptance criteria are either met or not me
 > Urgent info that needs immediate user attention to avoid problems.
 
  
-
 > [!CAUTION]
 
 > Advises about risks or negative outcomes of certain actions.
@@ -95,10 +94,6 @@ Note that conditions are pass/fail. Acceptance criteria are either met or not me
 Roadmaps are here:
 
  
-
-
-
-
 | Tag | Purpose | Example |
 
 |:----|:--------|:--------|
@@ -121,20 +116,11 @@ Roadmaps are here:
 
 ## Flagging Dependencies
 
- 
 
 If your task is waiting on someone or something, flag it immediately:
-
- 
 
 1. Post a `DEPENDENCY:` comment with what, who, ETA, and impact
 
 2. Set the **Dependency** field on the Project board
 
 3. If completely blocked, set **Status** to Blocked (RAG turns 🔴 Red automatically)
-
-
-
- 
-
- 
