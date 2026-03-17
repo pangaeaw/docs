@@ -27,7 +27,6 @@ Each task has a **target date** and is automatically **RAG-rated** based on prog
 
 | Role | Responsibilities | Comments |
 |:------|:--------|:------|
-
 | **Portfolio Lead** | Maintains the ongoing alignment with Business functions/sponsors on product strategy (3 years view) and roadmap of priorities |  |
 | **Product Manager** | Transforms the roadmap of priorities into actionable items in their backlog, refines and analyses tasks within the product team | |
 | **Head of Bnkg Tech** | Formal endorsement of the planned deliverables of a quarter. Resolves prioritization conflicts and acts as point of escalation for Business| |
