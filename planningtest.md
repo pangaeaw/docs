@@ -29,18 +29,18 @@ Each task has a **target date** and is automatically **RAG-rated** based on prog
 |:------|:--------|:------|
 | **Portfolio Lead** | Maintains the ongoing alignment with Business functions/sponsors on product strategy (3 years view) and roadmap of priorities |  |
 | **Product Manager** | Transforms the roadmap of priorities into actionable items in their backlog, refines and analyses tasks within the product team | |
-| **Head of Bnkg Tech** | Formal endorsement of the planned deliverables of a quarter. Resolves prioritization conflicts and acts as point of escalation for Business| |
-| **Head of AP & I** | Owns the Banking planning process and ensures planning data is up to date| |
+| **Head of ...** | Formal endorsement of the planned deliverables of a quarter. Resolves prioritization conflicts and acts as point of escalation for Business| |
+| **Team Head** | Owns the Banking planning process and ensures planning data is up to date| |
 
 ## Planning Principles
 - Planning item to sit in banking-planning repo with links to other repos
 - No effort No sizing required
 
 ## Management of Dependencies
-
 - Dependencies are expressed by mentioning the impacted item in comments (insert ID with '#' and issue number)
 
 ## Linking to other Planning Processes in GSec
+Yet to be defined.
 
 ## Suggested Practices
 
