@@ -69,3 +69,18 @@ jobs:
 
             // Post an audit trail comment
             const commentBody = [
+              "### ✅ Checkbox Audit",
+              "",
+              ...stampedItems,
+              "",
+              `> Automatically recorded by the checkbox audit workflow.`,
+            ].join("\n");
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: commentBody,
+            });
+
+            console.log(`Stamped and commented on issue #${issue.number}`);
