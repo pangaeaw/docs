@@ -1,0 +1,61 @@
+name: Checkbox Audit Trail
+
+on:
+  issues:
+    types: [edited]
+
+permissions:
+  issues: write
+
+jobs:
+  stamp-checkboxes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Stamp checked checkboxes with user + timestamp
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = context.payload.issue;
+            const sender = context.payload.sender.login;
+            const previousBody = context.payload.changes?.body?.from ?? "";
+            const currentBody = issue.body ?? "";
+
+            // Timestamp in UTC
+            const now = new Date();
+            const timestamp = now.toISOString().replace("T", " ").substring(0, 16) + " UTC";
+            const stamp = ` — ✅ @${sender} ${timestamp}`;
+
+            const previousLines = previousBody.split("\n");
+            const currentLines = currentBody.split("\n");
+
+            let changed = false;
+            const updatedLines = currentLines.map((line, i) => {
+              const isNowChecked = /^(\s*[-*]\s*\[x\])/i.test(line);
+              const wasChecked = previousLines[i] ? /^(\s*[-*]\s*\[x\])/i.test(previousLines[i]) : false;
+              const alreadyStamped = line.includes("✅");
+
+              // Only stamp lines newly checked and not already stamped
+              if (isNowChecked && !wasChecked && !alreadyStamped) {
+                changed = true;
+                return line + stamp;
+              }
+              return line;
+            });
+
+            if (!changed) {
+              console.log("No newly checked checkboxes found. Skipping.");
+              return;
+            }
+
+            const newBody = updatedLines.join("\n");
+
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: newBody,
+            });
+
+            console.log(`Stamped checkboxes in issue #${issue.number}`);
