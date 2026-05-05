@@ -1,5 +1,25 @@
 # PD Estim Summary
 
+## 05/05/2026 18:17 CEST
+
+### _(unset)_
+
+| Issue Type | PD Estim (days) |
+|------------|-----------------|
+| _(unset)_ | 10460.0 |
+| **Quarter Total** | **10460.0** |
+
+### Q2 2026
+
+| Issue Type | PD Estim (days) |
+|------------|-----------------|
+| Feature | 49.0 |
+| **Quarter Total** | **49.0** |
+
+| **Grand Total** | **10509.0** |
+
+> 📝 7 open/reopened issue(s) included — 6 had no PDestim value or were closed.
+
 ## 05/05/2026 18:06 CEST
 
 ### Q2 2026
