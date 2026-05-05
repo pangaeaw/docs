@@ -1,5 +1,26 @@
 # PD Estim Summary
 
+## 05/05/2026 18:34 CEST
+
+### _(unset)_
+
+| Issue Type | PD Estim (days) |
+|------------|-----------------|
+| _(unset)_ | 10460.0 |
+| **Quarter Total** | **10460.0** |
+
+### Q3 FY2627
+
+| Issue Type | PD Estim (days) |
+|------------|-----------------|
+| _(unset)_ | 151.0 |
+| Feature | 49.0 |
+| **Quarter Total** | **200.0** |
+
+| **Grand Total** | **10660.0** |
+
+> 📝 8 open/reopened issue(s) included — 5 had no PDestim value or were closed.
+
 ## 05/05/2026 18:28 CEST
 
 ### _(unset)_
