@@ -1,4 +1,4 @@
-name: Daily PD Estim Summary
+name: PD Estim Summary
 
 "on":
   issues:
@@ -34,7 +34,9 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            // ── 1. Fetch all open issues (paginated) ─────────────────────
+            // ── 1. Fetch only open issues (paginated) ─────────────────────
+            // state: "open" from the API already excludes closed issues.
+            // Reopened issues are also returned as their state becomes "open".
             let issues = [];
             let page = 1;
             while (true) {
@@ -50,35 +52,32 @@ jobs:
               page++;
             }
 
-            console.log(`Total open issues fetched: ${issues.length}`);
+            console.log(`Total open/reopened issues fetched: ${issues.length}`);
 
-            // ── 2. Parse PD estim, issue type and quarter from body/issue ─
-            const pdRegex = /PDestim\s*:\s*([\d.]+)/i;
-            const typeRegex = /CustomType\s*:\s*(.+)/i;
+            // ── 2. Parse PDestim, CustomType and Quarter from issue body ──
+            // All three fields are expected in the issue body, e.g.:
+            //   PDestim: 47
+            //   CustomType: Feature
+            //   Quarter: Q2 2026
+            const pdRegex      = /PDestim\s*:\s*([\d.]+)/i;
+            const typeRegex    = /CustomType\s*:\s*(.+)/i;
+            const quarterRegex = /Quarter\s*:\s*(.+)/i;
 
-            const getQuarter = (dateStr) => {
-              const date = new Date(dateStr);
-              const q = Math.ceil((date.getMonth() + 1) / 3);
-              const year = date.getFullYear();
-              return `Q${q} ${year}`;
-            };
-
-            // quarterTypeTotals = { "Q1 2026": { "Bug": 3.5, "Feature": 2.0 }, ... }
+            // Structure: { "Q2 2026": { "Feature": 47, "Bug": 3 }, ... }
             const quarterTypeTotals = {};
-            let grandTotal = 0;
             let counted = 0;
             let skipped = 0;
 
             for (const issue of issues) {
               const body = issue.body ?? "";
 
-              const pdMatch = body.match(pdRegex);
-              const typeMatch = body.match(typeRegex);
+              const pdMatch      = body.match(pdRegex);
+              const typeMatch    = body.match(typeRegex);
+              const quarterMatch = body.match(quarterRegex);
 
-              const pd = pdMatch ? parseFloat(pdMatch[1]) : null;
-              const issueType = typeMatch
-                ? typeMatch[1].trim().split("\n")[0].trim()
-                : "_(unset)_";
+              const pd        = pdMatch      ? parseFloat(pdMatch[1])                    : null;
+              const issueType = typeMatch    ? typeMatch[1].trim().split("\n")[0].trim() : "_(unset)_";
+              const quarter   = quarterMatch ? quarterMatch[1].trim().split("\n")[0].trim() : "_(unset)_";
 
               if (pd === null) {
                 skipped++;
@@ -86,17 +85,20 @@ jobs:
                 continue;
               }
 
-              const quarter = getQuarter(issue.created_at);
+              // Explicitly verify issue is open or reopened (state === "open")
+              if (issue.state !== "open") {
+                console.log(`Issue #${issue.number} skipped — state is ${issue.state}`);
+                continue;
+              }
 
               counted++;
-              grandTotal += pd;
 
               if (!quarterTypeTotals[quarter]) quarterTypeTotals[quarter] = {};
               quarterTypeTotals[quarter][issueType] =
                 (quarterTypeTotals[quarter][issueType] ?? 0) + pd;
             }
 
-            console.log(`Issues counted: ${counted}, skipped (no PDestim): ${skipped}`);
+            console.log(`Issues counted: ${counted}, skipped (no PDestim or not open): ${skipped}`);
 
             // ── 3. Build the markdown section ─────────────────────────────
             const now = new Date();
@@ -104,7 +106,7 @@ jobs:
             const tzLabel = now.toLocaleString("en-GB", {
               timeZone: "Europe/Zurich",
               timeZoneName: "short"
-            }).split(" ").pop(); // extracts "CET" or "CEST"
+            }).split(" ").pop();
 
             const dateStr = now.toLocaleString("en-GB", {
               timeZone: "Europe/Zurich",
@@ -116,17 +118,19 @@ jobs:
               hour12: false,
             }).replace(",", "") + ` ${tzLabel}`;
 
+            // Sort quarters chronologically e.g. Q1 2026, Q2 2026
             const sortedQuarters = Object.keys(quarterTypeTotals).sort((a, b) => {
-              const [qa, ya] = a.split(" ");
-              const [qb, yb] = b.split(" ");
-              return ya !== yb
-                ? parseInt(ya) - parseInt(yb)
-                : parseInt(qa[1]) - parseInt(qb[1]);
+              const matchA = a.match(/Q(\d)\s+(\d{4})/);
+              const matchB = b.match(/Q(\d)\s+(\d{4})/);
+              if (!matchA || !matchB) return a.localeCompare(b);
+              return matchA[2] !== matchB[2]
+                ? parseInt(matchA[2]) - parseInt(matchB[2])
+                : parseInt(matchA[1]) - parseInt(matchB[1]);
             });
 
             let quarterSections = [];
             for (const quarter of sortedQuarters) {
-              const typeTotals = quarterTypeTotals[quarter];
+              const typeTotals  = quarterTypeTotals[quarter];
               const sortedTypes = Object.entries(typeTotals).sort((a, b) => b[1] - a[1]);
               const quarterTotal = sortedTypes.reduce((sum, [, v]) => sum + v, 0);
 
@@ -140,16 +144,23 @@ jobs:
                 "| Issue Type | PD Estim (days) |",
                 "|------------|-----------------|",
                 rows,
-                `| **Total** | **${quarterTotal.toFixed(1)}** |`,
+                `| **Quarter Total** | **${quarterTotal.toFixed(1)}** |`,
                 "",
               ].join("\n"));
             }
+
+            // Grand total across all quarters
+            const grandTotal = Object.values(quarterTypeTotals)
+              .flatMap(t => Object.values(t))
+              .reduce((sum, v) => sum + v, 0);
 
             const newSection = [
               `## ${dateStr}`,
               "",
               ...quarterSections,
-              `> 📝 ${counted} open issue(s) included — ${skipped} had no PDestim value.`,
+              `| **Grand Total** | **${grandTotal.toFixed(1)}** |`,
+              "",
+              `> 📝 ${counted} open/reopened issue(s) included — ${skipped} had no PDestim value or were closed.`,
               "",
             ].join("\n");
 
