@@ -121,7 +121,11 @@ jobs:
               existing = "# PD Estim Summary\n\n";
             }
 
-            const updated = existing.trimEnd() + "\n\n" + newSection;
+            const header = "# PD Estim Summary\n\n";
+                 const bodyWithoutHeader = existing.startsWith(header)
+                 ? existing.slice(header.length)
+                 : existing.trimStart();
+            const updated = header + newSection + "\n" + bodyWithoutHeader.trimStart();
             fs.writeFileSync(filePath, updated, "utf8");
             console.log("Results.md updated.");
 
