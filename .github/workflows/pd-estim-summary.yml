@@ -1,6 +1,6 @@
 name: Daily PD Estim Summary
 
-on:
+"on":
   schedule:
     - cron: '0 7 * * *'  # Every day at 07:00 UTC
   workflow_dispatch:      # Allow manual trigger for testing
@@ -80,7 +80,7 @@ jobs:
 
               const pd = pdMatch ? parseFloat(pdMatch[1]) : null;
               const issueType = typeMatch
-                ? typeMatch[1].trim().split("\n")[0].trim()  // Take first line only
+                ? typeMatch[1].trim().split("\n")[0].trim()
                 : "_(unset)_";
 
               if (pd === null) {
@@ -91,54 +91,4 @@ jobs:
 
               counted++;
               grandTotal += pd;
-              typeTotals[issueType] = (typeTotals[issueType] ?? 0) + pd;
-            }
-
-            console.log(`Issues counted: ${counted}, skipped (no PDestim): ${skipped}`);
-
-            // ── 3. Build the markdown section ────────────────────────────
-            const now = new Date();
-            const dateStr = now.toISOString().substring(0, 10); // YYYY-MM-DD
-
-            const sortedTypes = Object.entries(typeTotals)
-              .sort((a, b) => b[1] - a[1]);
-
-            const rows = sortedTypes.length > 0
-              ? sortedTypes.map(([type, total]) =>
-                  `| ${type} | ${total.toFixed(1)} |`
-                ).join("\n")
-              : "| — | — |";
-
-            const newSection = [
-              `## ${dateStr}`,
-              "",
-              "| Issue Type | PD Estim (days) |",
-              "|------------|-----------------|",
-              rows,
-              `| **Total** | **${grandTotal.toFixed(1)}** |`,
-              "",
-              `> 📝 ${counted} open issue(s) included — ${skipped} had no PDestim value.`,
-              "",
-            ].join("\n");
-
-            // ── 4. Append to Results.md ───────────────────────────────────
-            const filePath = "Results.md";
-            let existing = "";
-
-            if (fs.existsSync(filePath)) {
-              existing = fs.readFileSync(filePath, "utf8");
-            } else {
-              existing = "# PD Estim Summary\n\n";
-            }
-
-            const updated = existing.trimEnd() + "\n\n" + newSection;
-            fs.writeFileSync(filePath, updated, "utf8");
-            console.log("Results.md updated.");
-
-      - name: Commit and push Results.md
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Results.md
-          git diff --cached --quiet || git commit -m "chore: daily PD estim summary $(date -u +%Y-%m-%d)"
-          git push
+              typeTotals[issueType
