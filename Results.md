@@ -17,3 +17,12 @@
 | **Total** | **262.0** |
 
 > 📝 4 open issue(s) included — 9 had no PDestim value.
+
+## 2026-05-05 15:11 UTC
+
+| Issue Type | PD Estim (days) |
+|------------|-----------------|
+| _(unset)_ | 361.0 |
+| **Total** | **361.0** |
+
+> 📝 5 open issue(s) included — 8 had no PDestim value.
