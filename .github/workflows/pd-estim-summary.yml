@@ -1,9 +1,9 @@
-name: Effort Estimation Overview - per Quarter
+name: Daily PD Estim Summary
 
 "on":
   issues:
     types: [opened, edited, closed, reopened]
-  workflow_dispatch:      # Keep manual trigger for testing
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -46,18 +46,25 @@ jobs:
                 page,
               });
               if (data.length === 0) break;
-              // Exclude pull requests
               issues = issues.concat(data.filter(i => !i.pull_request));
               page++;
             }
 
             console.log(`Total open issues fetched: ${issues.length}`);
 
-            // ── 2. Parse PD estim and issue type from body ───────────────
+            // ── 2. Parse PD estim, issue type and quarter from body/issue ─
             const pdRegex = /PDestim\s*:\s*([\d.]+)/i;
             const typeRegex = /CustomType\s*:\s*(.+)/i;
 
-            const typeTotals = {};
+            const getQuarter = (dateStr) => {
+              const date = new Date(dateStr);
+              const q = Math.ceil((date.getMonth() + 1) / 3);
+              const year = date.getFullYear();
+              return `Q${q} ${year}`;
+            };
+
+            // quarterTypeTotals = { "Q1 2026": { "Bug": 3.5, "Feature": 2.0 }, ... }
+            const quarterTypeTotals = {};
             let grandTotal = 0;
             let counted = 0;
             let skipped = 0;
@@ -79,39 +86,60 @@ jobs:
                 continue;
               }
 
+              const quarter = getQuarter(issue.created_at);
+
               counted++;
               grandTotal += pd;
-              typeTotals[issueType] = (typeTotals[issueType] ?? 0) + pd;
+
+              if (!quarterTypeTotals[quarter]) quarterTypeTotals[quarter] = {};
+              quarterTypeTotals[quarter][issueType] =
+                (quarterTypeTotals[quarter][issueType] ?? 0) + pd;
             }
 
             console.log(`Issues counted: ${counted}, skipped (no PDestim): ${skipped}`);
 
-            // ── 3. Build the markdown section ────────────────────────────
+            // ── 3. Build the markdown section ─────────────────────────────
             const now = new Date();
             const dateStr = now.toISOString().replace("T", " ").substring(0, 16) + " UTC";
 
-            const sortedTypes = Object.entries(typeTotals)
-              .sort((a, b) => b[1] - a[1]);
+            const sortedQuarters = Object.keys(quarterTypeTotals).sort((a, b) => {
+              const [qa, ya] = a.split(" ");
+              const [qb, yb] = b.split(" ");
+              return ya !== yb
+                ? parseInt(ya) - parseInt(yb)
+                : parseInt(qa[1]) - parseInt(qb[1]);
+            });
 
-            const rows = sortedTypes.length > 0
-              ? sortedTypes.map(([type, total]) =>
-                  `| ${type} | ${total.toFixed(1)} |`
-                ).join("\n")
-              : "| — | — |";
+            let quarterSections = [];
+            for (const quarter of sortedQuarters) {
+              const typeTotals = quarterTypeTotals[quarter];
+              const sortedTypes = Object.entries(typeTotals).sort((a, b) => b[1] - a[1]);
+              const quarterTotal = sortedTypes.reduce((sum, [, v]) => sum + v, 0);
+
+              const rows = sortedTypes
+                .map(([type, total]) => `| ${type} | ${total.toFixed(1)} |`)
+                .join("\n");
+
+              quarterSections.push([
+                `### ${quarter}`,
+                "",
+                "| Issue Type | PD Estim (days) |",
+                "|------------|-----------------|",
+                rows,
+                `| **Total** | **${quarterTotal.toFixed(1)}** |`,
+                "",
+              ].join("\n"));
+            }
 
             const newSection = [
               `## ${dateStr}`,
               "",
-              "| Issue Type | PD Estim (days) |",
-              "|------------|-----------------|",
-              rows,
-              `| **Total** | **${grandTotal.toFixed(1)}** |`,
-              "",
+              ...quarterSections,
               `> 📝 ${counted} open issue(s) included — ${skipped} had no PDestim value.`,
               "",
             ].join("\n");
 
-            // ── 4. Append to Results.md ───────────────────────────────────
+            // ── 4. Prepend to Results.md (latest run on top) ──────────────
             const filePath = "Results.md";
             let existing = "";
 
@@ -122,10 +150,11 @@ jobs:
             }
 
             const header = "# PD Estim Summary\n\n";
-                 const bodyWithoutHeader = existing.startsWith(header)
-                 ? existing.slice(header.length)
-                 : existing.trimStart();
+            const bodyWithoutHeader = existing.startsWith(header)
+              ? existing.slice(header.length)
+              : existing.trimStart();
             const updated = header + newSection + "\n" + bodyWithoutHeader.trimStart();
+
             fs.writeFileSync(filePath, updated, "utf8");
             console.log("Results.md updated.");
 
@@ -134,5 +163,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Results.md
-          git diff --cached --quiet || git commit -m "chore: PD estim summary update $(date -u +'%Y-%m-%d %H:%M') UTC"
+          git diff --cached --quiet || git commit -m "chore: Effort estimation summary as of $(date -u +'%Y-%m-%d %H:%M') UTC"
           git push
