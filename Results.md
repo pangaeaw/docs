@@ -6,6 +6,34 @@
 
 | Issue Type | PD Estim (days) |
 |------------|-----------------|
+| _(unset)_ | 236.0 |
+| **Quarter Total** | **236.0** |
+
+### Q1 FY2627
+
+| Issue Type | PD Estim (days) |
+|------------|-----------------|
+| _(unset)_ | 10006.0 |
+| **Quarter Total** | **10006.0** |
+
+### Q3 FY2627
+
+| Issue Type | PD Estim (days) |
+|------------|-----------------|
+| _(unset)_ | 386.0 |
+| Feature | 49.0 |
+| **Quarter Total** | **435.0** |
+
+| **Grand Total** | **10677.0** |
+
+> 📝 10 open/reopened issue(s) included — 3 had no PDestim value or were closed.
+
+## 05/05/2026 18:45 CEST
+
+### _(unset)_
+
+| Issue Type | PD Estim (days) |
+|------------|-----------------|
 | _(unset)_ | 10235.0 |
 | **Quarter Total** | **10235.0** |
 
