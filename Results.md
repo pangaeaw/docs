@@ -1,3 +1,14 @@
+# PD Estim Summary
+
+## 2026-05-05 15:28 UTC
+
+| Issue Type | PD Estim (days) |
+|------------|-----------------|
+| _(unset)_ | 461.0 |
+| **Total** | **461.0** |
+
+> 📝 5 open issue(s) included — 8 had no PDestim value.
+
 ## Results Summary
 
 ## 2026-05-05 06:31 UTC
