@@ -100,7 +100,21 @@ jobs:
 
             // ── 3. Build the markdown section ─────────────────────────────
             const now = new Date();
-            const dateStr = now.toISOString().replace("T", " ").substring(0, 16) + " UTC";
+
+            const tzLabel = now.toLocaleString("en-GB", {
+              timeZone: "Europe/Zurich",
+              timeZoneName: "short"
+            }).split(" ").pop(); // extracts "CET" or "CEST"
+
+            const dateStr = now.toLocaleString("en-GB", {
+              timeZone: "Europe/Zurich",
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            }).replace(",", "") + ` ${tzLabel}`;
 
             const sortedQuarters = Object.keys(quarterTypeTotals).sort((a, b) => {
               const [qa, ya] = a.split(" ");
@@ -163,5 +177,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Results.md
-          git diff --cached --quiet || git commit -m "chore: Effort estimation summary as of $(date -u +'%Y-%m-%d %H:%M') UTC"
+          git diff --cached --quiet || git commit -m "chore: PD estim summary update $(date -u +'%Y-%m-%d %H:%M') UTC"
           git push
