@@ -1,9 +1,9 @@
 name: Daily PD Estim Summary
 
 "on":
-  schedule:
-    - cron: '0 7 * * *'  # Every day at 07:00 UTC
-  workflow_dispatch:      # Allow manual trigger for testing
+  issues:
+    types: [opened, edited, closed, reopened]
+  workflow_dispatch:      # Keep manual trigger for testing
 
 permissions:
   contents: write
@@ -54,17 +54,7 @@ jobs:
             console.log(`Total open issues fetched: ${issues.length}`);
 
             // ── 2. Parse PD estim and issue type from body ───────────────
-            // Matches:
-            //   PDestim: 3
-            //   PDestim:3
-            //   PDestim: 3.5
-            //   PDestim : 5  (tolerant of spaces around colon)
             const pdRegex = /PDestim\s*:\s*([\d.]+)/i;
-
-            // Matches:
-            //   issue type: Bug
-            //   Issue Type: Feature Request
-            //   issuetype: Documentation  (tolerant of spacing)
             const typeRegex = /issue\s*type\s*:\s*(.+)/i;
 
             const typeTotals = {};
@@ -91,4 +81,54 @@ jobs:
 
               counted++;
               grandTotal += pd;
-              typeTotals[issueType
+              typeTotals[issueType] = (typeTotals[issueType] ?? 0) + pd;
+            }
+
+            console.log(`Issues counted: ${counted}, skipped (no PDestim): ${skipped}`);
+
+            // ── 3. Build the markdown section ────────────────────────────
+            const now = new Date();
+            const dateStr = now.toISOString().replace("T", " ").substring(0, 16) + " UTC";
+
+            const sortedTypes = Object.entries(typeTotals)
+              .sort((a, b) => b[1] - a[1]);
+
+            const rows = sortedTypes.length > 0
+              ? sortedTypes.map(([type, total]) =>
+                  `| ${type} | ${total.toFixed(1)} |`
+                ).join("\n")
+              : "| — | — |";
+
+            const newSection = [
+              `## ${dateStr}`,
+              "",
+              "| Issue Type | PD Estim (days) |",
+              "|------------|-----------------|",
+              rows,
+              `| **Total** | **${grandTotal.toFixed(1)}** |`,
+              "",
+              `> 📝 ${counted} open issue(s) included — ${skipped} had no PDestim value.`,
+              "",
+            ].join("\n");
+
+            // ── 4. Append to Results.md ───────────────────────────────────
+            const filePath = "Results.md";
+            let existing = "";
+
+            if (fs.existsSync(filePath)) {
+              existing = fs.readFileSync(filePath, "utf8");
+            } else {
+              existing = "# PD Estim Summary\n\n";
+            }
+
+            const updated = existing.trimEnd() + "\n\n" + newSection;
+            fs.writeFileSync(filePath, updated, "utf8");
+            console.log("Results.md updated.");
+
+      - name: Commit and push Results.md
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Results.md
+          git diff --cached --quiet || git commit -m "chore: PD estim summary update $(date -u +'%Y-%m-%d %H:%M') UTC"
+          git push
