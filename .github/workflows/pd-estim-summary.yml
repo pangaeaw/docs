@@ -55,7 +55,7 @@ jobs:
 
             // ── 2. Parse PD estim and issue type from body ───────────────
             const pdRegex = /PDestim\s*:\s*([\d.]+)/i;
-            const typeRegex = /issue\s*type\s*:\s*(.+)/i;
+            const typeRegex = /CustomType\s*:\s*(.+)/i;
 
             const typeTotals = {};
             let grandTotal = 0;
