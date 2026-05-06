@@ -1,0 +1,142 @@
+name: Issue Type Count Summary
+
+"on":
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  count-issue-types:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Count issues by type and update issues-summary.md
+        uses: actions/github-script@v7
+        env:
+          NODE_OPTIONS: --experimental-vm-modules
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require("fs");
+            const owner = context.repo.owner;
+            const repo  = context.repo.repo;
+
+            // ── 1. Fetch all open issues (paginated) ──────────────────────
+            let issues = [];
+            let page = 1;
+            while (true) {
+              const { data } = await github.rest.issues.listForRepo({
+                owner,
+                repo,
+                state: "open",
+                per_page: 100,
+                page,
+              });
+              if (data.length === 0) break;
+              issues = issues.concat(data.filter(i => !i.pull_request));
+              page++;
+            }
+
+            console.log(`Total open issues fetched: ${issues.length}`);
+
+            // ── 2. Parse CustomType from issue body and count ─────────────
+            // Matches:
+            //   CustomType: Feature
+            //   CustomType:Feature
+            //   customtype: Bug  (case-insensitive)
+            const typeRegex = /CustomType\s*:\s*(.+)/i;
+
+            const typeCounts = {};
+            let totalCounted = 0;
+            let unset = 0;
+
+            for (const issue of issues) {
+              const body = issue.body ?? "";
+              const typeMatch = body.match(typeRegex);
+              const issueType = typeMatch
+                ? typeMatch[1].trim().split("\n")[0].trim()
+                : "_(unset)_";
+
+              if (!typeMatch) unset++;
+
+              typeCounts[issueType] = (typeCounts[issueType] ?? 0) + 1;
+              totalCounted++;
+            }
+
+            console.log(`Open issues counted: ${totalCounted}, without CustomType: ${unset}`);
+
+            // ── 3. Build the markdown section ─────────────────────────────
+            const now = new Date();
+
+            const tzLabel = now.toLocaleString("en-GB", {
+              timeZone: "Europe/Zurich",
+              timeZoneName: "short"
+            }).split(" ").pop();
+
+            const dateStr = now.toLocaleString("en-GB", {
+              timeZone: "Europe/Zurich",
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            }).replace(",", "") + ` ${tzLabel}`;
+
+            // Sort by count descending
+            const sortedTypes = Object.entries(typeCounts)
+              .sort((a, b) => b[1] - a[1]);
+
+            const rows = sortedTypes
+              .map(([type, count]) => `| ${type} | ${count} |`)
+              .join("\n");
+
+            const newSection = [
+              `## ${dateStr}`,
+              "",
+              "| Issue Type | Count |",
+              "|------------|-------|",
+              rows,
+              `| **Total** | **${totalCounted}** |`,
+              "",
+              `> 📝 Only open issues are included. ${unset} issue(s) had no CustomType value.`,
+              "",
+            ].join("\n");
+
+            // ── 4. Prepend to issues-summary.md (latest run on top) ───────
+            const filePath = "issues-summary.md";
+            let existing = "";
+
+            if (fs.existsSync(filePath)) {
+              existing = fs.readFileSync(filePath, "utf8");
+            } else {
+              existing = "# Issue Type Count Summary\n\n";
+            }
+
+            const header = "# Issue Type Count Summary\n\n";
+            const bodyWithoutHeader = existing.startsWith(header)
+              ? existing.slice(header.length)
+              : existing.trimStart();
+            const updated = header + newSection + "\n" + bodyWithoutHeader.trimStart();
+
+            fs.writeFileSync(filePath, updated, "utf8");
+            console.log("issues-summary.md updated.");
+
+      - name: Commit and push issues-summary.md
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add issues-summary.md
+          git diff --cached --quiet || git commit -m "chore: issue type count summary $(date -u +'%Y-%m-%d %H:%M') UTC"
+          git push
