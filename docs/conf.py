@@ -11,5 +11,5 @@ source_suffix = {
     ".md": "markdown",
 }
 
-html_theme = "alabaster"
+html_theme = "nefertiti"
 html_title = "Pangaea Wealth Docs"
