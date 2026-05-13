@@ -6,4 +6,5 @@ This is the documentation home page.
 :maxdepth: 2
 :caption: Contents
 
+my-new-site
 ```
