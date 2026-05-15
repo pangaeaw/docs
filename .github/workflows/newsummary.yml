@@ -64,12 +64,106 @@ jobs:
             const spentRows      = [];
 
             for (const issue of issues) {
-              const body = issue.body ?? "";
-              const issueRef  = `[#${issue.number} ${issue.title}](${issue.html_url})`;
+              const body = issue.body || "";
+              const issueRef = `[#${issue.number} ${issue.title}](${issue.html_url})`;
 
-              // Extract all DEPENDENCY: matches in this issue
+              // Reset regex lastIndex before each use
+              // (required for global regexes reused in a loop)
+              dependencyRegex.lastIndex = 0;
+              spentRegex.lastIndex = 0;
+
+              // Skip issues with no body
+              if (!body.trim()) continue;
+
               const depMatches = [...body.matchAll(dependencyRegex)];
               for (const match of depMatches) {
                 dependencyRows.push({
                   issue: issueRef,
-                  number: issue.numbe
+                  number: issue.number,
+                  value: match[1].trim(),
+                });
+              }
+
+              const spentMatches = [...body.matchAll(spentRegex)];
+              for (const match of spentMatches) {
+                spentRows.push({
+                  issue: issueRef,
+                  number: issue.number,
+                  value: match[1].trim(),
+                });
+              }
+            }
+
+            console.log(`DEPENDENCY entries found: ${dependencyRows.length}`);
+            console.log(`SPENT entries found: ${spentRows.length}`);
+
+            // ── 3. Build timestamp ────────────────────────────────────────
+            const now = new Date();
+
+            const tzLabel = now.toLocaleString("en-GB", {
+              timeZone: "Europe/Zurich",
+              timeZoneName: "short",
+            }).split(" ").pop();
+
+            const dateStr = now.toLocaleString("en-GB", {
+              timeZone: "Europe/Zurich",
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            }).replace(",", "") + ` ${tzLabel}`;
+
+            // ── 4. Build DEPENDENCY table ─────────────────────────────────
+            const depTable = dependencyRows.length > 0
+              ? [
+                  "| Issue | Dependency |",
+                  "|-------|------------|",
+                  ...dependencyRows
+                    .sort((a, b) => a.number - b.number)
+                    .map(r => `| ${r.issue} | ${r.value} |`),
+                ].join("\n")
+              : "_No DEPENDENCY entries found in open issues._";
+
+            // ── 5. Build SPENT table ──────────────────────────────────────
+            const spentTable = spentRows.length > 0
+              ? [
+                  "| Issue | Spent |",
+                  "|-------|-------|",
+                  ...spentRows
+                    .sort((a, b) => a.number - b.number)
+                    .map(r => `| ${r.issue} | ${r.value} |`),
+                ].join("\n")
+              : "_No SPENT entries found in open issues._";
+
+            // ── 6. Compose full file content ──────────────────────────────
+            const content = [
+              `# Issue Summary`,
+              ``,
+              `_Last updated: ${dateStr} — ${issues.length} open issue(s) scanned._`,
+              ``,
+              `---`,
+              ``,
+              `## Dependencies`,
+              ``,
+              depTable,
+              ``,
+              `---`,
+              ``,
+              `## Spent`,
+              ``,
+              spentTable,
+              ``,
+            ].join("\n");
+
+            fs.writeFileSync("newsummary.md", content, "utf8");
+            console.log("newsummary.md written.");
+
+      - name: Commit and push newsummary.md
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add newsummary.md
+          git diff --cached --quiet || git commit -m "chore: update newsummary.md $(date -u +'%Y-%m-%d %H:%M') UTC"
+          git push
