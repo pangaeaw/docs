@@ -7,4 +7,7 @@ This is the documentation home page.
 :caption: Contents
 
 my-new-site
+getting-started
+another-page
+third-page
 ```
