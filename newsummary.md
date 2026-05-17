@@ -1,12 +1,15 @@
 # Issue Summary
 
-_Last updated: 17/05/2026 13:42 CEST — 13 open issue(s) scanned._
+_Last updated: 17/05/2026 13:48 CEST — 13 open issue(s) scanned._
 
 ---
 
 ## Dependencies
 
-_No DEPENDENCY entries found in open issues._
+| Issue | Dependency |
+|-------|------------|
+| [#3 Test Issue 2](https://github.com/pangaeaw/docs/issues/3) | #4 |
+| [#12 specify test scripts](https://github.com/pangaeaw/docs/issues/12) | #11 |
 
 ---
 
