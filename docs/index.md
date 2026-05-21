@@ -10,4 +10,5 @@ my-new-site
 getting-started
 another-page
 third-page
+Useful information
 ```
