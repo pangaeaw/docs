@@ -1,0 +1,62 @@
+name: "Feature Request to Banking Technology"
+description: "Submit a feature request for Banking Technology systems and services."
+title: "[Feature Request]:"
+labels: ["feature request"]
+body:
+  - type: dropdown
+    id: product_group
+    attributes:
+      label: "Select the applicable product group / portfolio"
+      description: "Choose the relevant product group or portfolio for your request."
+      options:
+        - label: "TTS (Treasury Trading Systems)"
+        - label: "PTA (Post-Trade Applications)"
+        - label: "CADM (Client Asset Management and Data)"
+      required: true
+ 
+  - type: input
+    id: software_product
+    attributes:
+      label: "Specify the software product if known"
+      description: "Provide the name of the software product, if applicable."
+      placeholder: "Enter the software product name"
+    validations:
+      required: false
+ 
+  - type: textarea
+    id: desired_functionality
+    attributes:
+      label: "Describe the desired functionality or support required from Banking"
+      description: "Provide a detailed description of the functionality or support you are requesting."
+      placeholder: "Enter your description here"
+    validations:
+      required: true
+ 
+  - type: dropdown
+    id: delivery_quarter
+    attributes:
+      label: "Desired delivery quarter"
+      description: "Select the desired delivery timeframe for your request."
+      options:
+        - label: "Current"
+        - label: "Next"
+        - label: "No later than"
+      required: true
+ 
+  - type: input
+    id: requesting_unit
+    attributes:
+      label: "Requesting unit (if different from creator)"
+      description: "Specify the unit making the request, if different from the creator."
+      placeholder: "Enter the requesting unit"
+    validations:
+      required: false
+ 
+  - type: textarea
+    id: comments
+    attributes:
+      label: "Comments"
+      description: "Provide any additional comments or context for your request."
+      placeholder: "Enter any additional information here"
+    validations:
+      required: false
