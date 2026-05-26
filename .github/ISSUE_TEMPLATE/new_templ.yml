@@ -9,11 +9,12 @@ body:
       label: "Select the applicable product group / portfolio"
       description: "Choose the relevant product group or portfolio for your request."
       options:
-        - label: "TTS (Treasury Trading Systems)"
-        - label: "PTA (Post-Trade Applications)"
-        - label: "CADM (Client Asset Management and Data)"
+        - "TTS (Treasury Trading Systems)"
+        - "PTA (Post-Trade Applications)"
+        - "CADM (Client Asset Management and Data)"
+    validations:
       required: true
- 
+
   - type: input
     id: software_product
     attributes:
@@ -22,7 +23,7 @@ body:
       placeholder: "Enter the software product name"
     validations:
       required: false
- 
+
   - type: textarea
     id: desired_functionality
     attributes:
@@ -31,18 +32,19 @@ body:
       placeholder: "Enter your description here"
     validations:
       required: true
- 
+
   - type: dropdown
     id: delivery_quarter
     attributes:
       label: "Desired delivery quarter"
       description: "Select the desired delivery timeframe for your request."
       options:
-        - label: "Current"
-        - label: "Next"
-        - label: "No later than"
+        - "Current"
+        - "Next"
+        - "No later than"
+    validations:
       required: true
- 
+
   - type: input
     id: requesting_unit
     attributes:
@@ -51,7 +53,7 @@ body:
       placeholder: "Enter the requesting unit"
     validations:
       required: false
- 
+
   - type: textarea
     id: comments
     attributes:
